@@ -51,7 +51,7 @@ output
       "minor": 2,
       "patch": 0
     }
-    # etc...
+    // etc...
   ]
 }
 ```
