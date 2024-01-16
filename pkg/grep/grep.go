@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// ConcatFirst returns the first matches of a regular expression joined in a string
 func ConcatFirst(text string, r *regexp.Regexp, sep string) string {
 	out := MatchFirst(text, r)
 

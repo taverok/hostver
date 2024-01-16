@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGrepFirst_sample1(t *testing.T) {
+func TestMatchFirst_sample1(t *testing.T) {
 	sample := `Software:
 
     System Software Overview:
