@@ -2,6 +2,7 @@ package dto
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"taverok/hostver/pkg/exec"
@@ -71,5 +72,24 @@ func (it *Platform) parseWindows() error {
 }
 
 func (it *Platform) parseLinux() error {
-	panic("implement me")
+	releaseFiles, err := filepath.Glob("/etc/*-release")
+	if err != nil {
+		return err
+	}
+
+	raw, err := exec.SafeExec("cat", releaseFiles...)
+	if err != nil {
+		return err
+	}
+
+	it.OsName = grep.ConcatFirst(raw, regexp.MustCompile(`DISTRIB_ID=(.+)`), "")
+	it.OsVersion = NewVersion(grep.ConcatFirst(raw, regexp.MustCompile(`VERSION="([^"]+)"`), ""))
+
+	raw, err = exec.SafeExec("uname", "-r")
+	if err != nil {
+		return err
+	}
+	it.KernelVersion = NewVersion(raw)
+
+	return nil
 }

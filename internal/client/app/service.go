@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 	"taverok/hostver/internal/dto"
 	"taverok/hostver/pkg/exec"
@@ -18,9 +19,7 @@ func (it *Service) ParseApps(p *dto.Platform) ([]dto.App, error) {
 		apps, err = it.parseMacApps()
 	case dto.OSLinux:
 		switch strings.TrimSpace(strings.ToLower(p.OsName)) {
-		case "ubuntu":
-			apps, err = it.parseUbuntuApps()
-		case "debian":
+		case "ubuntu", "pop":
 			apps, err = it.parseUbuntuApps()
 		default:
 			apps, err = it.parseLinuxApps()
@@ -62,7 +61,29 @@ func (it *Service) parseMacApps() ([]dto.App, error) {
 }
 
 func (it *Service) parseUbuntuApps() ([]dto.App, error) {
-	panic("implement me")
+	raw, err := exec.SafeExec("dpkg", "-l")
+	if err != nil {
+		return nil, err
+	}
+
+	exp := regexp.MustCompile(`ii\s+([^\s]+)\s+([^\s]+)`)
+	matches := exp.FindAllStringSubmatch(raw, -1)
+	apps := make([]dto.App, 0, len(matches))
+
+	for _, lineMathces := range matches {
+		if len(lineMathces) < 3 {
+			continue
+		}
+
+		app := dto.App{
+			Name:    lineMathces[1],
+			Version: dto.NewVersion(lineMathces[2]),
+		}
+
+		apps = append(apps, app)
+	}
+
+	return apps, nil
 }
 
 func (it *Service) parseLinuxApps() ([]dto.App, error) {
